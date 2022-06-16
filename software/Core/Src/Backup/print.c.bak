@@ -1,0 +1,55 @@
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include "print.h"
+#include "usart_fifo.h"
+
+int Printf(const char *str, ...)
+{
+	char buffer[FIFO_BUFFER_SIZE];
+	uint8_t idx = 0;
+	va_list vl;
+	va_start(vl, str);
+	int i = vsnprintf(buffer, FIFO_BUFFER_SIZE, str, vl);
+	if(i > FIFO_BUFFER_SIZE)
+    {
+        i = FIFO_BUFFER_SIZE;
+    }
+    while(i) {
+        if (usart_tx_fifo_ovf_flag){
+            LL_USART_EnableIT_TXE(USART1);
+            usart_tx_fifo_ovf_flag = 0;
+        }
+        while(usart_tx_fifo_full_flag);
+        usart_send_byte(buffer[idx++]);
+        i--;
+    }
+    va_end(vl);
+    LL_USART_EnableIT_TXE(USART1);
+    while(usart_tx_fifo_not_empty_flag){};
+    // Return number of sent bytes
+	return idx;
+}
+
+int8_t Getc(char *c)
+{
+	if(usart_rx_fifo_not_empty_flag == 0) {
+		return -1;
+	}
+    *c = usart_get_byte();
+	return 0;
+}
+
+int Putc(const char c)
+{
+    if(usart_tx_fifo_ovf_flag){
+        LL_USART_EnableIT_TXE(USART1);
+        usart_tx_fifo_ovf_flag = 0;
+    }
+    while (usart_tx_fifo_full_flag);
+    usart_send_byte(c);
+    LL_USART_EnableIT_TXE(USART1);
+    while(usart_tx_fifo_not_empty_flag){};
+	return 0;
+}
+

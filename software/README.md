@@ -13,7 +13,11 @@ To build this embedded program you'll need:
 - The `cargo generate` subcommand. [Installation
   instructions](https://github.com/ashleygwilliams/cargo-generate#installation).
 
-- `cargo flash` subcommand. Install it with `cargo install cargo-flash`
+- `cargo flash` subcommand. Install it with:
+  ``` console
+  $ apt install -y pkg-config libusb-1.0-0-dev libftdi1-dev  
+  $ cargo install cargo-flash
+  ```
 - `rust-std` components (pre-compiled `core` crate) for the ARM Cortex-M
   targets. Run:
  
